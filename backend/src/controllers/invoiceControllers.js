@@ -6,6 +6,9 @@ const prisma = new PrismaClient();
 
 const getInvoices = async (req, res) => {
   const invoices = await prisma.invoice.findMany({
+    where: {
+      userId: req.user.userId,
+    },
     include: {
       items: true,
     },
@@ -16,9 +19,11 @@ const getInvoices = async (req, res) => {
 
 const getInvoice = async (req, res) => {
   const { id } = req.params;
+
   const invoice = await prisma.invoice.findUnique({
     where: {
       id: parseInt(id),
+      userId: req.user.userId, // fetch the invoice for a specific user
     },
     include: {
       items: true,
@@ -29,6 +34,8 @@ const getInvoice = async (req, res) => {
 };
 
 const createInvoice = async (req, res) => {
+  // console.log(req.user);
+  // return res.send(req.user.userId);
   const {
     invoiceNumber,
     clientName,
@@ -60,6 +67,7 @@ const createInvoice = async (req, res) => {
       items: {
         create: items,
       },
+      userId: req.user.userId,
     },
   });
 
@@ -68,7 +76,6 @@ const createInvoice = async (req, res) => {
 };
 const updateInvoice = async (req, res) => {
   const { id } = req.params;
-  
   const updatedInvoice = await prisma.invoice.update({
     where: {
       id: parseInt(id),
@@ -76,10 +83,10 @@ const updateInvoice = async (req, res) => {
     data: {
       invoiceNumber: invoiceNumber || req.body.invoiceNumber,
       clientName: clientName || req.body.clientName,
-        clientEmail: clientEmail || req.body.clientEmail,
-        clientAddress: clientAddress || req.body.clientAddress, 
-        totalAmount: totalAmount || req.body.totalAmount,
-        dueDate: new Date(dueDate),
+      clientEmail: clientEmail || req.body.clientEmail,
+      clientAddress: clientAddress || req.body.clientAddress,
+      totalAmount: totalAmount || req.body.totalAmount,
+      dueDate: new Date(dueDate),
       items: {
         upsert: items.map((item) => ({
           where: { id: item.id },
@@ -94,12 +101,28 @@ const updateInvoice = async (req, res) => {
 
 const deleteInvoice = async (req, res) => {
   const { id } = req.params;
-  const deletedInvoice = await prisma.invoice.delete({
+
+  const invoice = await prisma.invoice.findUnique({
+    where: {
+      id: parseInt(id),
+      userId: req.user.userId,
+    },
+  });
+  if (!invoice) throw new NotFoundError("invoice not found");
+
+  await prisma.item.deleteMany({
+    where: {
+      invoiceId: parseInt(id),
+    },
+  });
+
+  await prisma.invoice.delete({
     where: {
       id: parseInt(id),
     },
   });
-  res.status(200).json(deletedInvoice);
+
+  res.status(200).json({ msg: "invoice deleted successfully" });
 };
 
 const payInvoice = async (req, res) => {
