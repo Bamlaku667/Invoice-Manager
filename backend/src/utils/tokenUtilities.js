@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { TOKEN_EXPIRY, TOKEN_KEY } from "../config.js";
+import { UnautorizedError } from "../errors/index.js";
 
 const GenerateJWT = async (res, tokenData) => {
   const token = await jwt.sign(tokenData, TOKEN_KEY, {
