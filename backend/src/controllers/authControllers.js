@@ -59,4 +59,6 @@ const userLogout = async (req, res) => {
   return res.json({ msg: "User LoggedOut" });
 };
 
+
+
 export { userRegister, userLogin, userLogout };

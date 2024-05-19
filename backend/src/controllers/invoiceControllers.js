@@ -149,6 +149,18 @@ const cancelInvoice = async (req, res) => {
   }
 };
 
+
+const getCurrentUser = async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.userId },
+  });
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+  res.json({ user });
+}
+
 export {
   getInvoices,
   getInvoice,
@@ -158,4 +170,5 @@ export {
   payInvoice,
   sendInvoice,
   cancelInvoice,
+  getCurrentUser
 };
