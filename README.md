@@ -24,13 +24,13 @@ Git
 
 1. Clone the repository
 
-git clone https://github.com/yourusername/invoice-manager.git
+    git clone https://github.com/yourusername/invoice-manager.git
 
 2. Navigate to the backend directory, install NPM packages and start the server
 
-cd invoice-manager/backend
-npm install
-npm start
+    cd invoice-manager/backend
+    npm install
+    npm start
 
 3. In a new terminal window, navigate to the frontend directory, install NPM packages and start the application
 
@@ -46,10 +46,10 @@ Create a .env file in the root directory of your backend project. Add the follow
 
 -- the postgress enviroment variables will be generated on vercel ( you can copy from your vercel account ) or you can use your local one
 
-POSTGRES_PRISMA_URL=<your_postgres_prisma_url>
-POSTGRES_URL_NON_POOLING=<your_postgres_url_non_pooling>
+    POSTGRES_PRISMA_URL=<your_postgres_prisma_url>
+    POSTGRES_URL_NON_POOLING=<your_postgres_url_non_pooling>
 
-TOKEN_KEY=<your_token_key>
-TOKEN_EXPIRY=<your_token_expiry>
-PORT=<your_port>
-NODE_ENV=<your_node_env>
+    TOKEN_KEY=<your_token_key>
+    TOKEN_EXPIRY=<your_token_expiry>
+    PORT=<your_port>
+    NODE_ENV=<your_node_env>
