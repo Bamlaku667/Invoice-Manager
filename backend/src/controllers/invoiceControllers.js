@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { BadRequestError, NotFoundError } from "../errors/index.js";
-import { t } from "tar";
-
+import pdfService from "../services/pdfServices.js";
+import excelService from "../services/excelServices.js";
 const prisma = new PrismaClient();
 
 const getInvoices = async (req, res) => {
@@ -149,7 +149,6 @@ const cancelInvoice = async (req, res) => {
   }
 };
 
-
 const getCurrentUser = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.userId },
@@ -159,8 +158,39 @@ const getCurrentUser = async (req, res) => {
     throw new NotFoundError("User not found");
   }
   res.json({ user });
-}
+};
 
+const exportInvoiceAsPdf = async (req, res) => {
+  const { id } = req.params;
+
+  const invoice = await prisma.invoice.findUnique({
+    where: {
+      id: parseInt(id),
+      userId: req.user.userId, // fetch the invoice for a specific user
+    },
+    include: {
+      items: true,
+    },
+  });
+  if (!invoice) throw new NotFoundError("Invoice not found");
+  const url = await pdfService.generatePdf(invoice);
+  console.log(url);
+  res.send({ message: "PDF generated successfully", url });
+};
+
+const exportAllInvoicesAsExcel = async (req, res) => {
+  const invoices = await prisma.invoice.findMany({
+    where: {
+      userId: req.user.userId,
+    },
+    include: {
+      items: true,
+    },
+  });
+  if (!invoices) throw new NotFoundError("No invoices found");
+  await excelService.generateExcel(invoices);
+  res.download("./invoices/balanceSheet.xlsx", "Balance Sheet Report.xlsx");
+};
 export {
   getInvoices,
   getInvoice,
@@ -170,5 +200,7 @@ export {
   payInvoice,
   sendInvoice,
   cancelInvoice,
-  getCurrentUser
+  getCurrentUser,
+  exportInvoiceAsPdf,
+  exportAllInvoicesAsExcel,
 };

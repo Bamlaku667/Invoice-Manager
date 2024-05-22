@@ -6,7 +6,7 @@ import { GenerateJWT } from "../utils/tokenUtilities.js";
 const prisma = new PrismaClient();
 
 const userRegister = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
 
   // Check if the user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -20,8 +20,9 @@ const userRegister = async (req, res) => {
   // Create a new user
   const newUser = await prisma.user.create({
     data: {
+      username,
       email,
-      password: hashedPassword,
+      password: hashedPassword
     },
   });
 
@@ -48,7 +49,7 @@ const userLogin = async (req, res) => {
   const tokenData = { userId: user.id, email: user.email };
   const token = await GenerateJWT(res, tokenData);
 
-  return res.status(200).json({ message: "Login successful", token });
+  return res.status(200).json({ message: "Login successful", token, user });
 };
 
 const userLogout = async (req, res) => {
