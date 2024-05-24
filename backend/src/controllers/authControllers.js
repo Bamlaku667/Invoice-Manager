@@ -3,17 +3,13 @@ import bcrypt from "bcrypt";
 import { BadRequestError } from "../errors/index.js";
 import { GenerateJWT } from "../utils/tokenUtilities.js";
 import Joi from "joi";
+import { loginSchema, registerSchema } from "../validation/validationSchemas.js";
 
 const prisma = new PrismaClient();
 
 const userRegister = async (req, res) => {
-  const schema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required(),
-    username: Joi.string().min(3).required(),
-  });
 
-  const { error } = schema.validate(req.body);
+  const { error } = registerSchema.validate(req.body);
   if (error) {
     throw new BadRequestError(error.details[0].message);
   }
@@ -44,12 +40,10 @@ const userRegister = async (req, res) => {
 };
 
 const userLogin = async (req, res) => {
-  const schema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required(),
-  });
+  
 
-  const { error } = schema.validate(req.body);
+  const { error } = loginSchema.validate(req.body);
+  
   if (error) {
     throw new BadRequestError(error.details[0].message);
   }

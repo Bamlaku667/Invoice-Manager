@@ -79,28 +79,64 @@ const createInvoice = async (req, res) => {
   if (!newInvoice) throw new BadRequestError("Failed to create invoice");
   res.status(201).json(newInvoice);
 };
+
 const updateInvoice = async (req, res) => {
   const { id } = req.params;
+  const {
+    invoiceNumber,
+    clientName,
+    clientEmail,
+    clientAddress,
+    totalAmount,
+    dueDate,
+    items,
+  } = req.body;
+
+  const invoice = await prisma.invoice.findUnique({
+    where: {
+      id: parseInt(id),
+      userId: req.user.userId, // fetch the invoice for a specific user
+    },
+    include: {
+      items: true,
+    },
+  });
+
+  if (!invoice) throw new NotFoundError("Invoice not found");
+  const newItems = items.filter(item =>!item.id); // Items without an id are considered new
+
+  // now for those with an id but do not comes with the request, we delete them
+
+  const itemIds = items.map(item => item.id);
+  const itemsToDelete = invoice.items.filter(item => !itemIds.includes(item.id));
+
+  await prisma.item.deleteMany({
+    where: {
+      id: {
+        in: itemsToDelete.map(item => item.id),
+      },
+    },
+  });
+
   const updatedInvoice = await prisma.invoice.update({
     where: {
       id: parseInt(id),
     },
     data: {
-      invoiceNumber: invoiceNumber || req.body.invoiceNumber,
-      clientName: clientName || req.body.clientName,
-      clientEmail: clientEmail || req.body.clientEmail,
-      clientAddress: clientAddress || req.body.clientAddress,
-      totalAmount: totalAmount || req.body.totalAmount,
-      dueDate: new Date(dueDate),
+      invoiceNumber: invoiceNumber || invoice.invoiceNumber,
+      clientName: clientName || invoice.clientName,
+      clientEmail: clientEmail || invoice.clientEmail,
+      clientAddress: clientAddress || invoice.clientAddress,
+      totalAmount: totalAmount || invoice.totalAmount,
+      dueDate: dueDate ? new Date(dueDate) : invoice.dueDate,
       items: {
-        upsert: items.map((item) => ({
-          where: { id: item.id },
-          update: item,
-          create: item,
-        })),
+        create: newItems,  // Then create all items again
       },
     },
   });
+
+  if (!updatedInvoice) throw new BadRequestError("Failed to Update invoice");
+
   res.status(200).json(updatedInvoice);
 };
 
@@ -177,6 +213,7 @@ const exportInvoiceAsPdf = async (req, res) => {
     margin: [0, 0, 0, 40], // Top margin
   });
 
+
   doc.moveDown();
   doc.text(`Invoice Number: ${invoiceData.invoiceNumber}`, { x: 50, y: 100 });
   doc.text(`Client Name: ${invoiceData.clientName}`, { x: 50, y: 120 });
@@ -186,6 +223,7 @@ const exportInvoiceAsPdf = async (req, res) => {
     ).toLocaleTimeString()}`,
     { x: 50, y: 140 }
   );
+
 
   doc.text("Items", {
     align: "center",
