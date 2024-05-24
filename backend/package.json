@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/server.js"
+    "start": "nodemon src/server.js",
+    "build": "npx prisma generate && npm install && tsc",
+    "prestart": "npm run build"
   },
   "author": "Bamlaku",
   "license": "ISC",
