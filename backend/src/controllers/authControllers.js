@@ -2,10 +2,22 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { BadRequestError } from "../errors/index.js";
 import { GenerateJWT } from "../utils/tokenUtilities.js";
+import Joi from "joi";
 
 const prisma = new PrismaClient();
 
 const userRegister = async (req, res) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    username: Joi.string().min(3).required(),
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    throw new BadRequestError(error.details[0].message);
+  }
+
   const { email, password, username } = req.body;
 
   // Check if the user already exists
@@ -22,7 +34,7 @@ const userRegister = async (req, res) => {
     data: {
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
     },
   });
 
@@ -32,6 +44,16 @@ const userRegister = async (req, res) => {
 };
 
 const userLogin = async (req, res) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    throw new BadRequestError(error.details[0].message);
+  }
+
   const { email, password } = req.body;
 
   // Find the user by email
@@ -59,7 +81,5 @@ const userLogout = async (req, res) => {
   });
   return res.json({ msg: "User LoggedOut" });
 };
-
-
 
 export { userRegister, userLogin, userLogout };

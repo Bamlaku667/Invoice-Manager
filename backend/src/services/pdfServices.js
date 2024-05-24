@@ -1,21 +1,19 @@
 import PDFDocument from "pdfkit";
-import blobStream from "blob-stream";
 import fs from "fs";
+import blobStream from "blob-stream";
 
 const generatePdf = (invoiceData) => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A5" });
-    const filePath = `./invoices/${invoiceData.invoiceNumber}.pdf`;
+    // const filePath = `./invoices/${invoiceData.invoiceNumber}.pdf`;
 
-    // Ensure the invoices directory exists
-    const dir = "./invoices";
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
+    // // Ensure the invoices directory exists
+    // const dir = "./invoices";
+    // if (!fs.existsSync(dir)) {
+    //   fs.mkdirSync(dir);
+    // }
 
-    // const stream = fs.createWriteStream(filePath);
-    const stream = doc.pipe(blobStream());
-
+    var stream = doc.pipe(blobStream());
     // Set default font and font size
     doc.font("Courier").fontSize(14);
 
@@ -23,31 +21,27 @@ const generatePdf = (invoiceData) => {
     doc.text("Invoice", {
       align: "center",
       underline: true,
-      bold: true,
       fontSize: 24,
       margin: [0, 0, 0, 40], // Top margin
     });
 
     doc.moveDown();
     doc.text(`Invoice Number: ${invoiceData.invoiceNumber}`, { x: 50, y: 100 });
-
-    doc.text(`Client Name: ${invoiceData.clientName}`, { x: 50, y: 100 });
-
+    doc.text(`Client Name: ${invoiceData.clientName}`, { x: 50, y: 120 });
     doc.text(
       `Due Date: ${new Date(
         invoiceData.dueDate
       ).toLocaleDateString()} ${new Date(
         invoiceData.dueDate
       ).toLocaleTimeString()}`,
-      { x: 50, y: 50 }
+      { x: 50, y: 140 }
     );
 
     doc.text("Items", {
       align: "center",
       underline: true,
-      bold: true,
       fontSize: 24,
-      margin: [0, 0, 0, 40], // Top margin
+      margin: [0, 20], // Top margin
     });
 
     // Calculate grand total
@@ -57,42 +51,32 @@ const generatePdf = (invoiceData) => {
 
     // Iterate over items to add detailed breakdown with improved styling
     invoiceData.items.forEach((item, index) => {
-      doc.text("-----------------------------", { x: 50, y: 260 + index * 20 });
-      doc.text(`${index + 1}): ${item.description}`, {
-        x: 50,
-        y: 220 + index * 20,
-      });
-      doc.text(`Quantity: ${item.quantity}`, { x: 50, y: 240 + index * 20 });
-      doc.text(`Unit Price: $ ${item.unitPrice.toFixed(2)}`, {
-        x: 150,
-        y: 240 + index * 20,
-      });
-      doc.text(
-        `Total Amount: $ ${(item.quantity * item.unitPrice).toFixed(2)}`,
-        { x: 50, y: 260 + index * 20 }
-      );
-      doc.text("-----------------------------", { x: 50, y: 260 + index * 20 });
+      const yPosition = 180 + index * 60;
+      doc.text(`-----------------------------`, { x: 50, y: yPosition });
+      doc.text(`${index + 1}: ${item.description}`, { x: 50, y: yPosition + 20 });
+      doc.text(`Quantity: ${item.quantity}`, { x: 50, y: yPosition + 40 });
+      doc.text(`Unit Price: $${item.unitPrice.toFixed(2)}`, { x: 150, y: yPosition + 40 });
+      doc.text(`Total Amount: $${(item.quantity * item.unitPrice).toFixed(2)}`, { x: 50, y: yPosition + 60 });
+      doc.text(`-----------------------------`, { x: 50, y: yPosition + 80 });
     });
     doc.text(`Grand Total: $${grandTotal.toFixed(2)}`, {
       x: 50,
-      y: 300 + invoiceData.items.length * 20,
+      y: 180 + invoiceData.items.length * 60,
       bold: true,
     });
-
-    doc.text("-----------------------------", { x: 50, y: 260 });
 
     doc.end();
 
     stream.on("finish", () => {
-      const url = stream.toBlobURL("application/pdf");
-      iframe.src = url
-      resolve(url)
-    //   iframe.src = url;
+      var blob_url = stream.toBlobURL('application/pdf');
+      resolve(blob_url);
     });
 
     stream.on("error", (error) => {
       reject(error);
     });
+
+    doc.pipe(stream);
   });
 };
 
