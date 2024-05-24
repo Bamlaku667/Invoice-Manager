@@ -1,5 +1,3 @@
 .vercel
 /node_modules   
-.env*.local
-backend/.env
 /.env
