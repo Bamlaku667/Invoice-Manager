@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 const prisma = new PrismaClient();
 import moment from "moment";
+import { createInvoiceSchema, updateInvoiceSchema } from "../validation/validationSchemas.js";
 
 const getInvoices = async (req, res) => {
   const invoices = await prisma.invoice.findMany({
@@ -41,6 +42,10 @@ const getInvoice = async (req, res) => {
 const createInvoice = async (req, res) => {
   // console.log(req.user);
   // return res.send(req.user.userId);
+  const { error } = createInvoiceSchema.validate(req.body);
+  if (error) {
+    throw new BadRequestError(error.details[0].message);
+  }
   const {
     invoiceNumber,
     clientName,
@@ -81,6 +86,7 @@ const createInvoice = async (req, res) => {
 };
 
 const updateInvoice = async (req, res) => {
+  
   const { id } = req.params;
   const {
     invoiceNumber,
