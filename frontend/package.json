@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.5",
     "axios": "^1.6.8",
+    "dayjs": "^1.11.11",
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
     "jspdf": "^2.5.1",
@@ -23,7 +24,8 @@
     "react-toastify": "^10.0.5",
     "redux": "^5.0.1",
     "sharp": "^0.33.4",
-    "styled-components": "^6.1.11"
+    "styled-components": "^6.1.11",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "daisyui": "^4.11.1",
