@@ -183,6 +183,106 @@ const getCurrentUser = async (req, res) => {
   res.json({ user });
 };
 
+// const exportInvoiceAsPdf = async (req, res) => {
+//   const { id } = req.params;
+
+//   const invoiceData = await prisma.invoice.findUnique({
+//     where: {
+//       id: parseInt(id),
+//       userId: req.user.userId, // fetch the invoice for a specific user
+//     },
+//     include: {
+//       items: true,
+//     },
+//   });
+//   if (!invoiceData) throw new NotFoundError("Invoice not found");
+
+
+//   const currentDateTime = moment().format('YYYY_MM_DD_HH_mm_ss'); // Format current date and time
+//   const fileName = `${invoiceData.invoiceNumber}_${currentDateTime}.pdf`; // Use invoice number and current date time as file name
+//   const filePath = path.join(process.cwd(), "public/downloads", fileName);
+
+//   // Ensure the directory exists
+//   const dir = path.dirname(filePath);
+//   if (!fs.existsSync(dir)) {
+//     fs.mkdirSync(dir, { recursive: true });
+//   }
+
+//   const doc = new PDFDocument({ size: "A5" });
+//   doc.font("Courier").fontSize(14);
+
+//   // Add content to PDF with improved styling
+//   doc.text("Invoice", {
+//     align: "center",
+//     underline: true,
+//     fontSize: 24,
+//     margin: [0, 0, 0, 40], // Top margin
+//   });
+
+
+//   doc.moveDown();
+//   doc.text(`Invoice Number: ${invoiceData.invoiceNumber}`, { x: 50, y: 100 });
+//   doc.text(`Client Name: ${invoiceData.clientName}`, { x: 50, y: 120 });
+//   doc.text(
+//     `Due Date: ${new Date(invoiceData.dueDate).toLocaleDateString()} ${new Date(
+//       invoiceData.dueDate
+//     ).toLocaleTimeString()}`,
+//     { x: 50, y: 140 }
+//   );
+
+
+//   doc.text("Items", {
+//     align: "center",
+//     underline: true,
+//     fontSize: 24,
+//     margin: [0, 20], // Top margin
+//   });
+
+//   // Calculate grand total
+//   const grandTotal = invoiceData.items.reduce((total, item) => {
+//     return total + item.quantity * item.unitPrice;
+//   }, 0);
+
+//   // Iterate over items to add detailed breakdown with improved styling
+//   invoiceData.items.forEach((item, index) => {
+//     const yPosition = 180 + index * 60;
+//     doc.text(`-----------------------------`, { x: 50, y: yPosition });
+//     doc.text(`${index + 1}: ${item.description}`, { x: 50, y: yPosition + 20 });
+//     doc.text(`Quantity: ${item.quantity}`, { x: 50, y: yPosition + 40 });
+//     doc.text(`Unit Price: $${item.unitPrice.toFixed(2)}`, {
+//       x: 150,
+//       y: yPosition + 40,
+//     });
+//     doc.text(`Total Amount: $${(item.quantity * item.unitPrice).toFixed(2)}`, {
+//       x: 50,
+//       y: yPosition + 60,
+//     });
+//     doc.text(`-----------------------------`, { x: 50, y: yPosition + 80 });
+//   });
+//   doc.text(`Grand Total: $${grandTotal.toFixed(2)}`, {
+//     x: 50,
+//     y: 180 + invoiceData.items.length * 60,
+//     bold: true,
+//   });
+
+//   doc.text(`-----------------------------`, { x: 50, y: 80 });
+
+//   const writeStream = fs.createWriteStream(filePath);
+//   doc.pipe(writeStream);
+//   doc.end();
+//   writeStream.on("finish", () => {
+//     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+//     res.setHeader("Content-Type", "application/pdf");
+//     res.sendFile(filePath);
+//   });
+
+//   writeStream.on("error", (err) => {
+//     console.error("Error writing PDF file", err);
+//     res.status(500).send("Error generating PDF");
+//   });
+// };
+
+
 const exportInvoiceAsPdf = async (req, res) => {
   const { id } = req.params;
 
@@ -195,18 +295,11 @@ const exportInvoiceAsPdf = async (req, res) => {
       items: true,
     },
   });
+  
   if (!invoiceData) throw new NotFoundError("Invoice not found");
-
 
   const currentDateTime = moment().format('YYYY_MM_DD_HH_mm_ss'); // Format current date and time
   const fileName = `${invoiceData.invoiceNumber}_${currentDateTime}.pdf`; // Use invoice number and current date time as file name
-  const filePath = path.join(process.cwd(), "public/downloads", fileName);
-
-  // Ensure the directory exists
-  const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
 
   const doc = new PDFDocument({ size: "A5" });
   doc.font("Courier").fontSize(14);
@@ -219,7 +312,6 @@ const exportInvoiceAsPdf = async (req, res) => {
     margin: [0, 0, 0, 40], // Top margin
   });
 
-
   doc.moveDown();
   doc.text(`Invoice Number: ${invoiceData.invoiceNumber}`, { x: 50, y: 100 });
   doc.text(`Client Name: ${invoiceData.clientName}`, { x: 50, y: 120 });
@@ -229,7 +321,6 @@ const exportInvoiceAsPdf = async (req, res) => {
     ).toLocaleTimeString()}`,
     { x: 50, y: 140 }
   );
-
 
   doc.text("Items", {
     align: "center",
@@ -267,19 +358,19 @@ const exportInvoiceAsPdf = async (req, res) => {
 
   doc.text(`-----------------------------`, { x: 50, y: 80 });
 
-  const writeStream = fs.createWriteStream(filePath);
-  doc.pipe(writeStream);
-  doc.end();
-  writeStream.on("finish", () => {
-    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
-    res.setHeader("Content-Type", "application/pdf");
-    res.sendFile(filePath);
+  // Create a buffer to store the PDF
+  const chunks = [];
+  doc.on('data', chunk => chunks.push(chunk));
+  doc.on('end', () => {
+    const pdfBuffer = Buffer.concat(chunks);
+
+    // Set headers and send the PDF buffer to the client
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(pdfBuffer);
   });
 
-  writeStream.on("error", (err) => {
-    console.error("Error writing PDF file", err);
-    res.status(500).send("Error generating PDF");
-  });
+  doc.end();
 };
 
 const exportAllInvoicesAsExcel = async (req, res) => {
