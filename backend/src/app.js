@@ -10,7 +10,7 @@ import errorHandler from "./middleware/errorHandler.js";
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: "https://invoice-manager-zafl.vercel.app",
   credentials: true,
 };
 
