@@ -7,11 +7,12 @@ const GenerateJWT = async (res, tokenData) => {
     expiresIn: TOKEN_EXPIRY,
   });
   res.cookie("jwt", token, {
-    //security  options
-    httpOnly: true,
-    // secure: NODE_ENV !== "developement",
-    sameSite: "strict",
-    maxAge: 30 * 24 * 60 * 1000,
+    httpOnly: true, // secure against XSS
+    secure: process.env.NODE_ENV !== "development", // ensure HTTPS in production
+    sameSite: process.env.NODE_ENV !== "development" ? "None" : "Lax", // Allow cross-origin in production, but restrict in development
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    // domain: process.env.NODE_ENV !== "development" ? 'cpca-front.vercel.app' : "localhost", // Set domain for production, localhost for development
+    path: "/", // root path
   });
   return token;
 };

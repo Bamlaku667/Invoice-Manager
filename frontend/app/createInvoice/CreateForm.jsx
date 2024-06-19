@@ -202,7 +202,6 @@ function CreateForm() {
             value={invoiceData.totalAmount}
             readOnly
           />
-
           <div className="flex ">
             <button
               type="submit"

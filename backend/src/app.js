@@ -9,13 +9,17 @@ import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
-const corsOptions = {
-  origin: "https://invoice-manager-zafl.vercel.app",
-  credentials: true,
-};
+// const corsOptions = {
+//   origin: "https://invoice-manager-zafl.vercel.app",
+//   credentials: true,
+// };
 
-app.use(cors(corsOptions));
-app.use(express.json());
+app.use(cors({
+  origin: function (origin, callback) {
+    callback(null, origin);
+  }, 
+  credentials: true
+}));app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
