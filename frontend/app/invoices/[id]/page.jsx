@@ -6,7 +6,7 @@ import {
 } from "@/redux/api/apiSlice";
 import Link from "next/link";
 import Image from "next/image";
-import HeroImage from "../../components/heroImage.png";
+import detailsImage from "../../components/details.svg";
 import Loading from "@/app/components/Loading";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -143,9 +143,9 @@ function InvoiceDetails({ params }) {
           <Image
           width={1000}
           height={1000}
-            src={HeroImage}
+            src={detailsImage}
             alt={`Invoice ${invoiceNumber}`}
-            className="w-full h-auto object-cover border border-base-200 rounded-lg lg:w-full"
+            className="w-full h-auto object-cover  rounded-lg lg:w-full"
           />
         </div>
         {/* DETAILS */}

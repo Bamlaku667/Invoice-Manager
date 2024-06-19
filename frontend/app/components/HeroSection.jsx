@@ -1,6 +1,6 @@
 'use client';
 import React from "react";
-import HeroImage from "./heroImage.png";
+import HeroImage from "./heroImage.svg";
 import Link from "next/link";
 import Image from "next/image";
 import { useSelector } from "react-redux";
